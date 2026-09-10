@@ -57,11 +57,6 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);
   color:var(--ground);padding:11px 18px;border-radius:4px;font-size:14px;z-index:40}
-.sheet{position:fixed;inset:0;background:var(--ground);z-index:50;display:flex;flex-direction:column;
-  gap:16px;align-items:center;justify-content:center;padding:20px}
-.sheet img{max-width:min(100%,340px);max-height:64dvh;box-shadow:0 10px 30px -20px rgba(0,0,0,.7)}
-.sheet p{margin:0;font-size:14px;color:var(--soft);text-align:center;max-width:30ch;line-height:1.6}
-.sheet button{flex:0 0 auto;padding:11px 28px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -331,18 +326,17 @@ button:disabled{opacity:.45;cursor:default;transform:none}
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 2600);
   }
-  function sheet(url) {
-    const s = document.createElement('div');
-    s.className = 'sheet';
-    const i = new Image(); i.src = url; i.alt = '완성된 이미지';
-    const p = document.createElement('p');
-    p.textContent = '이미지를 길게 눌러 저장하세요. (PC는 오른쪽 클릭)';
-    const b = document.createElement('button');
-    b.textContent = '닫기';
-    b.onclick = () => { s.remove(); URL.revokeObjectURL(url); };
-    s.append(i, p, b);
-    document.body.appendChild(s);
-    b.focus();
+  /* 파일 내려받기 — 앵커를 문서에 붙였다 눌러야 모바일에서 동작한다 */
+  function download(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 30000);
   }
 
   const saveBtn = document.getElementById('save');
@@ -358,20 +352,11 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       const name = 'stamp-' + d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) +
                    '-' + z(d.getHours()) + z(d.getMinutes()) + '.jpg';
 
-      if (dl) {
-        try { await dl.save({ filename: name, data: blob }); toast('저장했어요.'); return; }
+      if (dl) {                                      // 클로드 아티팩트로 열었을 때
+        try { await dl.save({ filename: name, data: blob }); return; }
         catch (err) { if (err && err.code === 'declined') return; }
       }
-      const f = new File([blob], name, { type: 'image/jpeg' });
-      if (navigator.canShare && navigator.canShare({ files: [f] })) {   // 폰: 공유 시트로 사진 저장
-        try { await navigator.share({ files: [f] }); return; }
-        catch (err) { if (err && err.name === 'AbortError') return; }
-      }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = name; a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 20000);
-      toast('저장했어요.');
+      download(blob, name);
     } catch (_) {
       toast('저장하지 못했어요. 다시 눌러주세요.');
     } finally { saveBtn.disabled = false; }
