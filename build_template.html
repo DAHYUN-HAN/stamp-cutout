@@ -45,6 +45,12 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);
   color:var(--ground);padding:11px 18px;border-radius:4px;font-size:14px;z-index:40}
+.result{position:fixed;inset:0;z-index:50;background:var(--ground);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;padding:20px}
+.result[hidden]{display:none}
+.result img{max-width:min(100%,360px);max-height:64dvh;box-shadow:0 10px 30px -20px rgba(0,0,0,.7)}
+.result p{margin:0;font-size:14px;color:var(--soft);text-align:center;line-height:1.7}
+.result button{flex:0 0 auto;padding:11px 30px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -59,6 +65,12 @@ button:disabled{opacity:.45;cursor:default;transform:none}
     <button id="save" type="button" class="go">저장</button>
   </div>
   <input id="file" type="file" accept="image/*" class="sr">
+</div>
+
+<div class="result" id="result" hidden>
+  <img id="rimg" alt="완성된 이미지">
+  <p>이미지를 꾹 눌러 저장하세요<br>PC는 오른쪽 클릭 → 이미지를 다른 이름으로 저장</p>
+  <button id="rclose" type="button">닫기</button>
 </div>
 
 <script>
@@ -310,52 +322,37 @@ button:disabled{opacity:.45;cursor:default;transform:none}
     });
   }
 
-  /* 저장 */
-  let dl = null;
-  if (window.claude && window.claude.use) {          // 클로드 아티팩트로 열었을 때만
-    window.claude.use('downloads').then(d => { dl = d; }).catch(() => {});
-  }
+  /* 저장 — 웹에서 이미지 저장하듯 꾹 눌러 받는다.
+     blob: URL 은 폰에서 저장 메뉴가 안 뜨는 경우가 있어 data: URL 로 넣는다. */
   function toast(msg) {
     const t = document.createElement('div');
     t.className = 'toast'; t.textContent = msg; t.setAttribute('role', 'status');
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 2600);
   }
-  /* 파일 내려받기 — 앵커를 문서에 붙였다 눌러야 모바일에서 동작한다 */
-  function download(blob, name) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    a.rel = 'noopener';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 30000);
-  }
 
   const saveBtn = document.getElementById('save');
-  saveBtn.onclick = async () => {
-    if (!img) { toast('먼저 사진을 넣어주세요.'); return; }
-    saveBtn.disabled = true;
-    try {
-      const ex = document.createElement('canvas');
-      ex.width = W; ex.height = H;
-      render(ex.getContext('2d'), 1);
-      const blob = await new Promise(r => ex.toBlob(r, 'image/jpeg', 0.94));
-      const d = new Date(), z = n => String(n).padStart(2, '0');
-      const name = 'stamp-' + d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) +
-                   '-' + z(d.getHours()) + z(d.getMinutes()) + '.jpg';
+  const result = document.getElementById('result');
+  const rimg = document.getElementById('rimg');
+  const rclose = document.getElementById('rclose');
 
-      if (dl) {                                      // 클로드 아티팩트로 열었을 때
-        try { await dl.save({ filename: name, data: blob }); return; }
-        catch (err) { if (err && err.code === 'declined') return; }
-      }
-      download(blob, name);
-    } catch (_) {
-      toast('저장하지 못했어요. 다시 눌러주세요.');
-    } finally { saveBtn.disabled = false; }
+  saveBtn.onclick = () => {
+    if (!img) { toast('먼저 사진을 넣어주세요.'); return; }
+    const ex = document.createElement('canvas');
+    ex.width = W; ex.height = H;
+    render(ex.getContext('2d'), 1);
+    rimg.src = ex.toDataURL('image/jpeg', 0.94);   // 원본 해상도 그대로 저장된다
+    result.hidden = false;
+    rclose.focus();
   };
+
+  function closeResult() {
+    result.hidden = true;
+    rimg.removeAttribute('src');
+    saveBtn.focus();
+  }
+  rclose.onclick = closeResult;
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !result.hidden) closeResult(); });
 
   /* 시작 */
   viaTag('data:image/jpeg;base64,__BG_B64__').then(b => { bg = b; paint(); });
