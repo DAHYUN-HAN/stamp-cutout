@@ -121,8 +121,8 @@ button:disabled{opacity:.45;cursor:default;transform:none}
   }
   const R = Math.min(SW, SH) * (10 / 234);
   const T = edge(SW, R), S = edge(SH, R);
-  function stampPath(c, x, y) {
-    c.beginPath();
+  function stampPath(c, x, y, keep) {
+    if (!keep) c.beginPath();                        // keep: 앞 경로에 이어 붙인다
     c.moveTo(x, y);
     for (let i = 0; i < T.n; i++) { const a = x + T.e + i * T.p; c.lineTo(a, y); c.arc(a + R, y, R, Math.PI, 0, true); }
     c.lineTo(x + SW, y);
@@ -132,6 +132,15 @@ button:disabled{opacity:.45;cursor:default;transform:none}
     c.lineTo(x, y + SH);
     for (let i = 0; i < S.n; i++) { const b = y + SH - S.e - i * S.p; c.lineTo(x, b); c.arc(x, b - R, R, Math.PI / 2, -Math.PI / 2, true); }
     c.closePath();
+  }
+
+  /* 그림자 — 광원은 왼쪽 위. 위 칸 조각은 종이에 그늘을 드리우고,
+     아래 칸 구멍은 잘린 테두리가 종이에 그늘을 드리워 안쪽 벽이 어두워진다.
+     캔버스 그림자 값은 변환 행렬을 타지 않으므로 배율 k 를 직접 곱해서 쓴다. */
+  const SH_INK = 'rgba(28,26,22,.32)', SH_BLUR = 20, SH_DX = 8, SH_DY = 10;
+  function setShadow(c, k) {
+    c.shadowColor = SH_INK;
+    c.shadowBlur = SH_BLUR * k; c.shadowOffsetX = SH_DX * k; c.shadowOffsetY = SH_DY * k;
   }
 
   /* 빈 화면 안내용 사진 아이콘 */
@@ -198,8 +207,39 @@ button:disabled{opacity:.45;cursor:default;transform:none}
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.drawImage(layer, 0, fy);
 
+    /* 구멍 안쪽 그림자 — 구멍만 잠근 뒤 구멍 밖(사진 쪽)을 칠한다. 칠한 면은
+       잠긴 자리 밖이라 그림자만 남고, 오른쪽 아래로 밀린 그 그림자가 구멍의
+       왼쪽·위 벽에 깔린다. 테두리 상자는 흐림이 닿지 않을 만큼 넉넉히 잡는다. */
+    c.setTransform(k, 0, 0, k, 0, 0);
+    c.save();
+    stampPath(c, stamp.x, F + stamp.y);
+    c.clip();
+    c.beginPath();
+    c.rect(stamp.x - 80, F + stamp.y - 80, SW + 160, SH + 160);
+    stampPath(c, stamp.x, F + stamp.y, true);
+    setShadow(c, k);
+    c.fillStyle = '#000';
+    c.fill('evenodd');
+    c.restore();
+
     // 위 칸 — 오려낸 조각을 같은 자리에 붙인다 (위 칸 원점 = 캔버스 원점)
     c.setTransform(k, 0, 0, k, 0, 0);
+
+    /* 조각이 종이 위에 놓인 것처럼 오른쪽 아래로 옅은 그림자.
+       '위 칸 − 조각' 영역으로 잠근 뒤 조각 모양을 칠한다. 칠한 면 자체는 잠긴
+       자리 밖이라 그림자만 남는다 — 사진에 투명한 곳이 있어도 가리지 않고,
+       그림자가 아래 칸으로 새지도 않는다. */
+    c.save();
+    c.beginPath();
+    c.rect(0, 0, W, F);
+    stampPath(c, stamp.x, stamp.y, true);
+    c.clip('evenodd');
+    setShadow(c, k);
+    c.fillStyle = '#000';
+    stampPath(c, stamp.x, stamp.y);
+    c.fill();
+    c.restore();
+
     c.save();
     stampPath(c, stamp.x, stamp.y);
     c.clip();
