@@ -241,8 +241,12 @@ button:disabled{opacity:.45;cursor:default;transform:none}
     return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H };
   };
 
+  // 빈 화면을 탭하면 사진을 고른다. pointerdown 이 아니라 click 이어야 한다 —
+  // 모바일 브라우저는 pointerdown 을 파일 선택창을 열 만한 동작으로 보지 않는다.
+  ov.addEventListener('click', () => { if (!img) fileEl.click(); });
+
   ov.addEventListener('pointerdown', e => {
-    if (!img) { fileEl.click(); return; }
+    if (!img) return;
     ov.setPointerCapture(e.pointerId);
     const p = toCv(e);
     pts.set(e.pointerId, p);
