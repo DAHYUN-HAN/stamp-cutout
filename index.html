@@ -75,7 +75,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
   <div class="bar">
     <button id="pick" type="button">사진 업로드</button>
     <button id="center" type="button">우표 위치 초기화</button>
-    <button id="save" type="button" class="go">저장</button>
+    <button id="done" type="button" class="go">완료</button>
   </div>
   <input id="file" type="file" accept="image/*" class="sr">
 </div>
@@ -335,7 +335,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
     });
   }
 
-  /* 저장 — 웹에서 이미지 저장하듯 꾹 눌러 받는다.
+  /* 완료 — 편집을 끝내고 결과 이미지를 띄운다. 웹에서 이미지 저장하듯 꾹 눌러 받는다.
      blob: URL 은 폰에서 저장 메뉴가 안 뜨는 경우가 있어 data: URL 로 넣는다. */
   function toast(msg) {
     const t = document.createElement('div');
@@ -344,12 +344,12 @@ button:disabled{opacity:.45;cursor:default;transform:none}
     setTimeout(() => t.remove(), 2600);
   }
 
-  const saveBtn = document.getElementById('save');
+  const doneBtn = document.getElementById('done');
   const result = document.getElementById('result');
   const rimg = document.getElementById('rimg');
   const rclose = document.getElementById('rclose');
 
-  saveBtn.onclick = () => {
+  doneBtn.onclick = () => {
     if (!img) { toast('먼저 사진을 넣어주세요.'); return; }
     const ex = document.createElement('canvas');
     ex.width = W; ex.height = H;
@@ -362,7 +362,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
   function closeResult() {
     result.hidden = true;
     rimg.removeAttribute('src');
-    saveBtn.focus();
+    doneBtn.focus();
   }
   rclose.onclick = closeResult;
   addEventListener('keydown', e => { if (e.key === 'Escape' && !result.hidden) closeResult(); });
