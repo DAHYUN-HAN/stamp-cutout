@@ -1,3 +1,15 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="사진 한 장을 우표 모양으로 오려내 위·아래 두 폭 이미지로 만듭니다.">
+<style>
+  :root{color-scheme:light dark}
+  html,body{margin:0;padding:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
 <title>우표</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,7 +64,8 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 .sheet button{flex:0 0 auto;padding:11px 28px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-
+</head>
+<body>
 <div class="app">
   <div class="stage" id="stage">
     <canvas id="out" width="750" height="1000" aria-label="미리보기"></canvas>
@@ -369,3 +382,6 @@ button:disabled{opacity:.45;cursor:default;transform:none}
   paint();
 })();
 </script>
+
+</body>
+</html>
