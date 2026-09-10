@@ -12,6 +12,17 @@ HEAD = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="사진 한 장을 우표 모양으로 오려내 위·아래 두 폭 이미지로 만듭니다.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="우표">
+<meta property="og:title" content="우표">
+<meta property="og:description" content="사진 한 장을 우표 모양으로 오려냅니다.">
+<meta property="og:url" content="https://dahyun-han.github.io/stamp-cutout/">
+<meta property="og:image" content="https://dahyun-han.github.io/stamp-cutout/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="사진에서 우표 모양을 오려낸 결과 예시">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   :root{color-scheme:light dark}
   html,body{margin:0;padding:0}
