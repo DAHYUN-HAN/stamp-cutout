@@ -277,12 +277,20 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 
   ['dragenter', 'dragover'].forEach(t => ov.addEventListener(t, e => { e.preventDefault(); ov.classList.add('dropping'); }));
   ['dragleave', 'drop'].forEach(t => ov.addEventListener(t, e => { e.preventDefault(); ov.classList.remove('dropping'); }));
-  ov.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) load(f); });
+  ov.addEventListener('drop', e => takeFirst(e.dataTransfer.files));
 
   /* 사진 불러오기 · 우표 되돌리기 */
   document.getElementById('pick').onclick = () => fileEl.click();
   centerBtn.onclick = () => { stamp = { x: CX, y: CY }; paint(); };
-  fileEl.onchange = () => { if (fileEl.files[0]) load(fileEl.files[0]); fileEl.value = ''; };
+  fileEl.onchange = () => { takeFirst(fileEl.files); fileEl.value = ''; };
+
+  // 사진은 한 장만 쓴다. 고르는 화면은 기기가 그리는 것이라 여러 장이
+  // 넘어올 수 있는데, 그때는 조용히 버리지 않고 알려준다.
+  function takeFirst(files) {
+    if (!files || !files.length) return;
+    if (files.length > 1) toast('사진은 한 장만 쓸 수 있어서 첫 번째 것을 넣었어요.');
+    load(files[0]);
+  }
 
   async function load(file) {
     try {
